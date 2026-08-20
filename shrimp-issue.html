@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>虾使用问题反馈</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0f1a;
+      color: #e8f4ff;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 52px 16px 64px;
+    }
+    .form-card {
+      width: 100%; max-width: 520px;
+      background: #101627;
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 36px 36px 40px;
+      box-shadow: 0 8px 48px rgba(0,0,0,.5);
+    }
+    .form-header { margin-bottom: 32px; }
+    .form-header .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .form-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px;
+      background: linear-gradient(135deg, #00c8ff, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .form-header p { font-size: 12px; color: #4a6480; line-height: 1.6; margin-top: 6px; }
+    .q-block { margin-bottom: 22px; }
+    .q-label { font-size: 13px; font-weight: 600; color: #8ba8cc; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px; }
+    .q-label .q-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,200,255,.15); color: #00c8ff;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    input[type=text], textarea {
+      width: 100%; background: #0b0f1a;
+      border: 1px solid #1e3a5f; border-radius: 10px;
+      color: #e8f4ff; font-size: 13px; font-family: inherit;
+      padding: 11px 14px; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, textarea:focus { border-color: #00c8ff; }
+    input::placeholder, textarea::placeholder { color: #2a4060; }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.65; }
+    .submit-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #0ea5e9, #7b5cf0);
+      color: #fff; font-size: 14px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      letter-spacing: 1px; margin-top: 8px;
+      transition: opacity .2s, transform .1s;
+    }
+    .submit-btn:hover { opacity: .88; }
+    .submit-btn:active { transform: scale(.98); }
+    .err-tip { display: none; font-size: 11px; color: #f87171; margin-top: 5px; }
+    .err-tip.show { display: block; }
+    #success-msg { display: none; text-align: center; padding: 48px 0 16px; }
+    #success-msg .si { font-size: 48px; margin-bottom: 16px; }
+    #success-msg h2 { font-size: 18px; font-weight: 700; color: #00c8ff; margin-bottom: 8px; }
+    #success-msg p { font-size: 13px; color: #4a6480; line-height: 1.7; }
+    #success-msg .back { display: inline-block; margin-top: 28px; padding: 9px 24px;
+      border: 1px solid #00c8ff; border-radius: 8px; color: #00c8ff;
+      font-size: 12px; cursor: pointer; text-decoration: none; transition: background .15s; }
+    #success-msg .back:hover { background: rgba(0,200,255,.1); }
+  </style>
+</head>
+<body>
+<div class="form-card">
+
+  <div id="success-msg">
+    <div class="si">✅</div>
+    <h2>反馈已收到！</h2>
+    <p>感谢你的反馈，我们会尽快跟进处理。</p>
+    <a class="back" onclick="window.close()">关闭窗口</a>
+  </div>
+
+  <div id="form-wrap">
+    <div class="form-header">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#FF6900"/>
+          <line x1="8"  y1="13" x2="8"  y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="8"  y1="13" x2="16" y2="13" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="16" y1="13" x2="16" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="12" y1="13" x2="12" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="22" cy="11" r="1.6" fill="white"/>
+          <line x1="22" y1="14" x2="22" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <h1>使用问题反馈</h1>
+      </div>
+      <p>遇到虾使用中的问题？请填写以下信息，帮助我们快速定位和改进。</p>
+    </div>
+
+    <!-- Q1 功能模块 -->
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">1</span>问题出现在哪个功能？</div>
+      <input type="text" id="q1" placeholder="例：激活分析、库存查询、合同查询…"/>
+      <div class="err-tip" id="err-q1">请填写功能模块</div>
+    </div>
+
+    <!-- Q2 问题描述 -->
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">2</span>问题具体描述</div>
+      <textarea id="q2" placeholder="请描述你遇到的问题，包括：做了什么操作、出现了什么现象、期望的结果是什么…"></textarea>
+      <div class="err-tip" id="err-q2">请填写具体描述（至少10个字）</div>
+    </div>
+
+    <!-- Q3 联系方式 -->
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">3</span>联系方式（邮箱或飞书）</div>
+      <input type="text" id="q3" placeholder="方便我们联系你跟进问题"/>
+      <div class="err-tip" id="err-q3">请填写联系方式</div>
+    </div>
+
+    <button class="submit-btn" onclick="submitIssue()">提交反馈</button>
+  </div>
+
+</div>
+<script>
+  ['q1','q2','q3'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      document.getElementById('err-'+id).classList.remove('show');
+    });
+  });
+  function submitIssue(){
+    let valid = true;
+    const q1 = document.getElementById('q1').value.trim();
+    const q2 = document.getElementById('q2').value.trim();
+    const q3 = document.getElementById('q3').value.trim();
+    if(!q1) { document.getElementById('err-q1').classList.add('show'); valid=false; }
+    if(q2.length < 10) { document.getElementById('err-q2').classList.add('show'); valid=false; }
+    if(!q3) { document.getElementById('err-q3').classList.add('show'); valid=false; }
+    if(!valid) return;
+    console.log('虾问题反馈：', { 功能模块: q1, 问题描述: q2, 联系方式: q3, 时间: new Date().toLocaleString('zh-CN') });
+    document.getElementById('form-wrap').style.display='none';
+    document.getElementById('success-msg').style.display='block';
+  }
+</script>
+</body>
+</html>

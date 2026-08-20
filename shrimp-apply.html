@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>个人虾申请</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0f1a;
+      color: #e8f4ff;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 52px 16px 64px;
+    }
+    .form-card {
+      width: 100%; max-width: 520px;
+      background: #101627;
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 36px 36px 40px;
+      box-shadow: 0 8px 48px rgba(0,0,0,.5);
+    }
+    .form-header { margin-bottom: 32px; }
+    .form-header .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .form-header .logo svg { flex-shrink: 0; }
+    .form-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px;
+      background: linear-gradient(135deg, #00c8ff, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .form-header p { font-size: 12px; color: #4a6480; line-height: 1.6; margin-top: 6px; }
+    .q-block { margin-bottom: 24px; }
+    .q-label { font-size: 13px; font-weight: 600; color: #8ba8cc; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px; }
+    .q-label .q-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,200,255,.15); color: #00c8ff;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    input[type=text], input[type=email] {
+      width: 100%; background: #0b0f1a;
+      border: 1px solid #1e3a5f; border-radius: 10px;
+      color: #e8f4ff; font-size: 13px; font-family: inherit;
+      padding: 11px 14px; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: #00c8ff; }
+    input::placeholder { color: #2a4060; }
+    .submit-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #0ea5e9, #7b5cf0);
+      color: #fff; font-size: 14px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      letter-spacing: 1px; margin-top: 8px;
+      transition: opacity .2s, transform .1s;
+    }
+    .submit-btn:hover { opacity: .88; }
+    .submit-btn:active { transform: scale(.98); }
+    .err-tip { display: none; font-size: 11px; color: #f87171; margin-top: 5px; }
+    .err-tip.show { display: block; }
+    #success-msg { display: none; text-align: center; padding: 48px 0 16px; }
+    #success-msg .si { font-size: 48px; margin-bottom: 16px; }
+    #success-msg h2 { font-size: 18px; font-weight: 700; color: #00c8ff; margin-bottom: 8px; }
+    #success-msg p { font-size: 13px; color: #4a6480; line-height: 1.7; }
+    #success-msg .back { display: inline-block; margin-top: 28px; padding: 9px 24px;
+      border: 1px solid #00c8ff; border-radius: 8px; color: #00c8ff;
+      font-size: 12px; cursor: pointer; text-decoration: none; transition: background .15s; }
+    #success-msg .back:hover { background: rgba(0,200,255,.1); }
+  </style>
+</head>
+<body>
+<div class="form-card">
+
+  <div id="success-msg">
+    <div class="si">🦐</div>
+    <h2>申请已提交！</h2>
+    <p>我们将尽快审核并开通你的个人虾账号。<br/>请留意邮箱通知。</p>
+    <a class="back" onclick="window.close()">关闭窗口</a>
+  </div>
+
+  <div id="form-wrap">
+    <div class="form-header">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#FF6900"/>
+          <line x1="8"  y1="13" x2="8"  y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="8"  y1="13" x2="16" y2="13" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="16" y1="13" x2="16" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="12" y1="13" x2="12" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="22" cy="11" r="1.6" fill="white"/>
+          <line x1="22" y1="14" x2="22" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <h1>个人虾申请</h1>
+      </div>
+      <p>填写以下信息，提交后将为你开通独联体销管虾助手账号。</p>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">1</span>岗位</div>
+      <input type="text" id="f-role" placeholder="例：区国总、销售、GTM、零售…"/>
+      <div class="err-tip" id="err-role">请填写你的岗位</div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="q-num">2</span>邮箱</div>
+      <input type="email" id="f-email" placeholder="请输入公司邮箱"/>
+      <div class="err-tip" id="err-email">请填写有效的邮箱地址</div>
+    </div>
+
+    <button class="submit-btn" onclick="submitApply()">提交申请</button>
+  </div>
+
+</div>
+<script>
+  ['f-role','f-email'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      document.getElementById('err-'+id.replace('f-','')).classList.remove('show');
+    });
+  });
+  function submitApply(){
+    let valid = true;
+    const role  = document.getElementById('f-role').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    if(!role)  { document.getElementById('err-role').classList.add('show');  valid=false; }
+    if(!email || !email.includes('@')) { document.getElementById('err-email').classList.add('show'); valid=false; }
+    if(!valid) return;
+    console.log('虾申请：', { 岗位: role, 邮箱: email, 时间: new Date().toLocaleString('zh-CN') });
+    document.getElementById('form-wrap').style.display='none';
+    document.getElementById('success-msg').style.display='block';
+  }
+</script>
+</body>
+</html>

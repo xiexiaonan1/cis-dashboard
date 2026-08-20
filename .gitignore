@@ -1,0 +1,9 @@
+# 只保留项目 HTML 和图片，忽略其他所有内容
+*
+!.gitignore
+!*.html
+!*.jpg
+!*.png
+!*.gif
+!*.svg
+!*.webp

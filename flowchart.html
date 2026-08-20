@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>独联体数据全貌 - 销售端</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b0f1a;
+      --panel:   #101627;
+      --card:    #131c30;
+      --border:  #1e3a5f;
+      --accent1: #00c8ff;
+      --accent2: #7b5cf0;
+      --accent3: #00e5a0;
+      --text-hi: #e8f4ff;
+      --text-mid:#8ba8cc;
+      --text-lo: #4a6480;
+      --glow1:   rgba(0,200,255,.18);
+      --glow2:   rgba(123,92,240,.20);
+      --glow3:   rgba(0,229,160,.16);
+    }
+
+    html, body {
+      width: 100%;
+      background: var(--bg);
+      font-family: 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+      color: var(--text-hi);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── 顶栏 ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid #1a2d45;
+      background: linear-gradient(90deg, rgba(0,200,255,.04) 0%, transparent 60%);
+      position: relative;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 40%; height: 1px;
+      background: linear-gradient(90deg, var(--accent1), transparent);
+    }
+    .title-main {
+      font-size: 20px; font-weight: 700; letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--accent1), #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .title-sub { font-size: 12px; color: var(--text-mid); letter-spacing: 1px; margin-top: 4px; }
+
+    /* ── 上方流程图区 ── */
+    #top-section { padding: 36px 40px 32px; }
+    .region-frame {
+      position: relative;
+      border: 1px dashed #1e3a5f;
+      border-radius: 14px;
+      padding: 32px 36px 36px;
+      background: rgba(16,22,39,.6);
+    }
+    .region-label {
+      position: absolute;
+      top: -13px; left: 24px;
+      background: var(--bg);
+      padding: 2px 12px;
+      font-size: 11px; color: var(--accent1);
+      letter-spacing: 2px;
+      border: 1px solid #1e3a5f;
+      border-radius: 4px;
+    }
+    .flow-row { display: flex; align-items: center; gap: 0; }
+
+    /* 源节点 */
+    .source-card {
+      flex-shrink: 0;
+      width: 160px; height: 160px;
+      border: 1px solid var(--accent1);
+      border-radius: 14px;
+      background: linear-gradient(145deg, #0d1e38, #091526);
+      box-shadow: 0 0 28px var(--glow1), inset 0 1px 0 rgba(0,200,255,.12);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      position: relative; z-index: 2;
+      transition: box-shadow .25s, border-color .25s;
+    }
+    .source-card:hover { box-shadow: 0 0 40px rgba(0,200,255,.35); }
+    .source-card.active { border-color: #38bdf8; box-shadow: 0 0 36px rgba(56,189,248,.5); }
+    .source-card::before {
+      content: '';
+      position: absolute; inset: -1px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(0,200,255,.35), transparent 50%);
+      z-index: -1; opacity: .5;
+    }
+    .globe-icon {
+      width: 48px; height: 48px;
+      background: radial-gradient(circle at 35% 35%, #1a3a6e, #0a1a35);
+      border: 1.5px solid var(--accent1); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 14px var(--glow1);
+    }
+    .source-title { font-size: 16px; font-weight: 700; color: var(--text-hi); letter-spacing: 1px; }
+    .source-sub   { font-size: 11px; color: var(--text-mid); letter-spacing: 1px; }
+    .source-dot {
+      width: 7px; height: 7px;
+      background: var(--accent3); border-radius: 50%;
+      box-shadow: 0 0 8px var(--glow3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.4; transform:scale(.6); }
+    }
+
+    /* SVG 连线 */
+    .connector-svg { flex: 1; height: 280px; overflow: visible; }
+
+    /* 目标节点列 */
+    .targets-col { flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; }
+    .target-card {
+      width: 175px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(145deg, #0f1e35, #0a1525);
+      padding: 14px 18px;
+      display: flex; flex-direction: column; gap: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .target-card:hover  { border-color: var(--accent1); box-shadow: 0 0 18px var(--glow1); }
+    .target-card.active { border-color: #38bdf8; box-shadow: 0 0 22px rgba(56,189,248,.45); }
+    .target-card::before {
+      content: '';
+      position: absolute; left: 0; top: 20%; bottom: 20%;
+      width: 2px; border-radius: 2px;
+      background: var(--accent1); box-shadow: 0 0 8px var(--accent1);
+    }
+    .target-card .country-icon {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border); border-radius: 50%;
+      background: #0d1c30;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; margin-bottom: 6px;
+    }
+    .target-card .code { font-size: 17px; font-weight: 700; color: var(--accent1); letter-spacing: 2px; }
+    .target-card .name-zh { font-size: 14px; font-weight: 500; color: var(--text-hi); }
+    .target-card .name-en { font-size: 11px; color: var(--text-mid); }
+
+    /* 右侧资源列 */
+    .resources-col {
+      flex-shrink: 0; margin-left: 36px;
+      display: flex; flex-direction: column; gap: 20px; align-self: center;
+    }
+    .res-card {
+      width: 170px; height: 110px;
+      border: 1px solid var(--border); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
+      background: linear-gradient(145deg, #0f1e35, #0a1525);
+      font-size: 17px; font-weight: 600; color: var(--text-hi); letter-spacing: 1px;
+      cursor: default;
+      transition: border-color .25s, box-shadow .25s;
+      position: relative; overflow: hidden;
+    }
+    .res-card::after {
+      content: '';
+      position: absolute; top: -30%; left: -30%;
+      width: 80%; height: 80%;
+      background: radial-gradient(circle, rgba(0,200,255,.07), transparent 70%);
+      pointer-events: none;
+    }
+    .res-card:hover { border-color: var(--accent2); box-shadow: 0 0 20px var(--glow2); }
+    .res-card.active { border-color: #38bdf8 !important; box-shadow: 0 0 24px rgba(56,189,248,.5) !important; }
+    .res-card .res-icon { font-size: 22px; }
+    .res-card.ai-card { border-color: rgba(0,200,255,.35); background: linear-gradient(145deg,#0f2040,#0a1525); }
+    .res-card.hq-card { border-color: rgba(123,92,240,.35); background: linear-gradient(145deg,#141030,#0a1025); }
+    .res-card.hq-card::after { background: radial-gradient(circle, rgba(123,92,240,.08), transparent 70%); }
+    .res-label { font-size: 10px; color: var(--text-lo); letter-spacing: 2px; text-transform: uppercase; }
+
+    /* 图例 */
+    .flow-footer {
+      margin-top: 28px; padding-top: 18px; border-top: 1px solid #141e30;
+      display: flex; gap: 28px; flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-mid); }
+    .legend-line { width: 28px; height: 2px; border-radius: 1px; }
+
+    /* ===== DRILL PANEL ===== */
+    #drill-panel {
+      display: none;
+      margin: 0 24px 40px;
+      animation: panelIn .3s ease;
+    }
+    #drill-panel.visible { display: block; }
+    @keyframes panelIn {
+      from { opacity:0; transform:translateY(-12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: #151b27;
+      border-radius: 14px 14px 0 0;
+      border-bottom: 1px solid #1e2d3d;
+    }
+    .panel-header .ph-icon { font-size: 22px; }
+    .panel-header .ph-title { font-size: 16px; font-weight: 700; color: #e2e8f0; }
+    .panel-header .ph-sub   { font-size: 12px; color: #64748b; margin-left: 6px; }
+    .panel-header .ph-close {
+      margin-left: auto;
+      cursor: pointer;
+      font-size: 18px;
+      color: #475569;
+      padding: 2px 8px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    .panel-header .ph-close:hover { background: #1e2d3d; color: #e2e8f0; }
+
+    .panel-body {
+      background: #0d1420;
+      border-radius: 0 0 14px 14px;
+      padding: 20px;
+      border: 1px solid #1e2d3d;
+      border-top: none;
+    }
+
+    /* section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #475569;
+      margin: 0 0 14px;
+      padding-left: 4px;
+      border-left: 3px solid #334155;
+    }
+    .section-title.push { border-color: #f59e0b; color: #f59e0b99; }
+    .section-title.filter { border-color: #38bdf8; color: #38bdf899; }
+
+    /* card grid */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: #131c2b;
+      border: 1px solid #1e2d3d;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color .2s, box-shadow .2s;
+      cursor: default;
+    }
+    .card:hover { border-color: #334155; box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+
+    .card-img { width: 100%; height: 140px; background: #0f1520; display: block; object-fit: cover; }
+    .card-img-wrap {
+      width: 100%; height: 140px; overflow: hidden; background: #0f1520;
+      position: relative; cursor: zoom-in;
+    }
+    .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s; }
+    .card-img-wrap:hover img { opacity: .85; }
+
+    /* 悬停放大浮层 */
+    .card-img-wrap::after {
+      content: '🔍 悬停查看大图';
+      position: absolute;
+      bottom: 6px; right: 8px;
+      font-size: 10px;
+      color: #e2e8f0cc;
+      background: #00000077;
+      padding: 2px 7px;
+      border-radius: 4px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .card-img-wrap:hover::after { opacity: 1; }
+
+    /* 图片预览浮层 */
+    #img-preview-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,.82);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    #img-preview-overlay.show { display: flex; }
+    #img-preview-overlay img {
+      max-width: 90vw;
+      max-height: 88vh;
+      border-radius: 10px;
+      box-shadow: 0 8px 60px rgba(0,0,0,.7);
+      object-fit: contain;
+      animation: previewIn .2s ease;
+    }
+    @keyframes previewIn {
+      from { opacity: 0; transform: scale(.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    #img-preview-close {
+      position: fixed;
+      top: 18px; right: 24px;
+      font-size: 28px;
+      color: #e2e8f0aa;
+      cursor: pointer;
+      line-height: 1;
+      transition: color .15s;
+    }
+    #img-preview-close:hover { color: #fff; }
+
+    /* 需求按钮（在 header 里，复用 btn-feedback 样式） */
+    .btn-feedback {
+      padding: 9px 20px;
+      border: 1px solid var(--accent2);
+      border-radius: 7px;
+      background: rgba(123,92,240,.12);
+      color: #c4b5fd;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: 1px;
+      transition: all .25s;
+      white-space: nowrap;
+    }
+    .btn-feedback:hover { background: rgba(123,92,240,.28); box-shadow: 0 0 14px var(--glow2); }
+    .card-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: #38bdf822;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+      cursor: pointer;
+    }
+    .card-link-btn:hover { background: #38bdf844; }
+
+    .card-body { padding: 12px 14px 14px; }
+    .card-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .tag-push   { background:#f59e0b22; color:#f59e0b; border:1px solid #f59e0b44; }
+    .tag-filter { background:#38bdf822; color:#38bdf8; border:1px solid #38bdf844; }
+
+    .card-name { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .card-desc { font-size: 11px; color: #64748b; line-height: 1.6; }
+
+    .tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .chip {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: #1e2d3d;
+      color: #94a3b8;
+      border: 1px solid #2a3d52;
+    }
+
+    /* ===== SVG MOCK CHARTS ===== */
+    /* used inside card-img */
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:translate(-50%,-50%) scale(.7); }
+      to   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    }
+    .node.entering { animation: fadeIn .25s ease forwards; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:18px;">
+    <!-- 小米 logo -->
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="10" fill="#FF6900"/>
+      <!-- m：两竖+中竖，圆头 -->
+      <line x1="9"  y1="16" x2="9"  y2="27" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <line x1="9"  y1="16" x2="19" y2="16" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <line x1="19" y1="16" x2="19" y2="27" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <line x1="14" y1="16" x2="14" y2="27" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <!-- i：点 + 竖 -->
+      <circle cx="27" cy="13.5" r="1.8" fill="white"/>
+      <line x1="27" y1="17" x2="27" y2="27" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="title-main">独联体数据全貌 · 销售端</div>
+      <div class="title-sub">CIS Region Data Overview — Sales</div>
+    </div>
+  </div>
+  <button class="btn-feedback" onclick="window.open('feedback.html','_blank')">我要提需求 / 建议</button>
+</header>
+
+<div id="top-section">
+  <div class="region-frame">
+    <div class="region-label">独联体区域 (CIS Region)</div>
+    <div class="flow-row">
+
+      <!-- 源节点：独联体区域 -->
+      <div class="source-card" id="src-cis" onclick="toggleCis()">
+        <div class="globe-icon">🌍</div>
+        <div class="source-title">独联体区域</div>
+        <div class="source-sub">CIS Region</div>
+        <div class="source-dot"></div>
+      </div>
+
+      <!-- SVG 连线 -->
+      <svg class="connector-svg" id="connSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <!-- 国家节点列 -->
+      <div class="targets-col" id="targets">
+        <div class="target-card" id="t-ru" onclick="openCountry('ru')">
+          <div class="country-icon">🇷🇺</div>
+          <div class="code">RU</div>
+          <div class="name-zh">俄罗斯</div>
+          <div class="name-en">Russia</div>
+        </div>
+        <div class="target-card" id="t-kz" onclick="openCountry('kz')">
+          <div class="country-icon">🇰🇿</div>
+          <div class="code">KZ</div>
+          <div class="name-zh">哈萨克斯坦</div>
+          <div class="name-en">Kazakhstan</div>
+        </div>
+        <div class="target-card" id="t-ca" onclick="openCountry('ca')">
+          <div class="country-icon">🌏</div>
+          <div class="code" style="color:var(--accent3)">FSD</div>
+          <div class="name-zh">中亚 / 白高</div>
+
+        </div>
+      </div>
+
+      <!-- 右侧资源 -->
+      <div class="resources-col">
+        <div class="res-card ai-card" id="ai-res-card" onclick="toggleAiPanel()" style="cursor:pointer;">
+          <div class="res-icon">🤖</div>
+          <div>AI 赋能</div>
+          <div class="res-label">AI Empowerment</div>
+        </div>
+        <div class="res-card hq-card" id="hq-res-card" onclick="toggleHqPanel()" style="cursor:pointer;">
+          <div class="res-icon">🏢</div>
+          <div>总部资源</div>
+          <div class="res-label">HQ Resources</div>
+        </div>
+      </div>
+
+    </div><!-- .flow-row -->
+
+
+  </div>
+</div>
+
+<!-- ===== 下钻功能面板 ===== -->
+<div id="drill-panel">
+  <div class="panel-header">
+    <span class="ph-icon" id="ph-icon">🌍</span>
+    <span class="ph-title" id="ph-title">独联体区域</span>
+    <span class="ph-sub" id="ph-sub">CIS Region</span>
+    <span class="ph-close" onclick="closePanel()">✕</span>
+  </div>
+  <div class="panel-body">
+
+    <!-- 推送类 -->
+    <div class="section-title push">推送类</div>
+    <div class="cards">
+
+      <!-- 卡片1：激活达成进展 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="1.jpg" alt="激活达成进展" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <!-- 标题 -->
+          <text x="10" y="13" fill="#f59e0b" font-size="8.5" font-family="sans-serif" font-weight="bold">激活达成进展</text>
+          <!-- KPI 块 1：本月达成率 -->
+          <rect x="8"   y="18" width="56" height="46" rx="5" fill="#1a1228" stroke="#a855f733" stroke-width="1"/>
+          <text x="36"  y="34" fill="#a855f7" font-size="14" font-family="sans-serif" font-weight="bold" text-anchor="middle">78%</text>
+          <text x="36"  y="45" fill="#64748b" font-size="7"  font-family="sans-serif" text-anchor="middle">本月达成率</text>
+          <!-- 进度弧示意 -->
+          <rect x="12"  y="52" width="48" height="5" rx="2" fill="#1e2d3d"/>
+          <rect x="12"  y="52" width="37" height="5" rx="2" fill="#a855f7"/>
+          <!-- KPI 块 2：周同比 -->
+          <rect x="70"  y="18" width="56" height="46" rx="5" fill="#101e14" stroke="#22c55e33" stroke-width="1"/>
+          <text x="98"  y="34" fill="#22c55e" font-size="14" font-family="sans-serif" font-weight="bold" text-anchor="middle">+12%</text>
+          <text x="98"  y="45" fill="#64748b" font-size="7"  font-family="sans-serif" text-anchor="middle">周同比</text>
+          <text x="98"  y="57" fill="#22c55e" font-size="8"  font-family="sans-serif" text-anchor="middle">↑ 上周 +8%</text>
+          <!-- KPI 块 3：7日日均 -->
+          <rect x="132" y="18" width="56" height="46" rx="5" fill="#101624" stroke="#3b82f633" stroke-width="1"/>
+          <text x="160" y="34" fill="#3b82f6" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">4,820</text>
+          <text x="160" y="45" fill="#64748b" font-size="7"  font-family="sans-serif" text-anchor="middle">7日日均激活</text>
+          <text x="160" y="57" fill="#3b82f6" font-size="7.5" font-family="sans-serif" text-anchor="middle">台/天</text>
+          <!-- KPI 块 4：周激活环比 -->
+          <rect x="194" y="18" width="58" height="46" rx="5" fill="#1e1008" stroke="#f9731633" stroke-width="1"/>
+          <text x="223" y="34" fill="#f97316" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">+6.4%</text>
+          <text x="223" y="45" fill="#64748b" font-size="7"  font-family="sans-serif" text-anchor="middle">周激活环比</text>
+          <text x="223" y="57" fill="#f97316" font-size="7.5" font-family="sans-serif" text-anchor="middle">WoW</text>
+          <!-- 折线图 -->
+          <line x1="8" y1="132" x2="252" y2="132" stroke="#1e2d3d" stroke-width="1"/>
+          <line x1="8" y1="75"  x2="8"   y2="132" stroke="#1e2d3d" stroke-width="1"/>
+          <polyline points="8,128 48,118 88,120 128,108 168,100 208,90 252,80"
+            fill="none" stroke="#a855f7" stroke-width="2"/>
+          <polyline points="8,128 48,125 88,124 128,122 168,120 208,118 252,116"
+            fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <!-- 图例 -->
+          <rect x="10"  y="134" width="7" height="2.5" rx="1" fill="#a855f7"/>
+          <text x="20"  y="138" fill="#64748b" font-size="7" font-family="sans-serif">实际</text>
+          <rect x="55"  y="134" width="7" height="2.5" rx="1" fill="#3b82f6"/>
+          <text x="65"  y="138" fill="#64748b" font-size="7" font-family="sans-serif">目标</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">区域/国家激活达成进展</div>
+          <div class="card-desc">推送本月激活目标达成率、周同比变化、7日日均激活量及周激活环比。</div>
+          <div class="tag-chips">
+            <span class="chip">本月达成率</span>
+            <span class="chip">周同比</span>
+            <span class="chip">7日日均</span>
+            <span class="chip">周激活环比</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片2：区域/国家 DOS -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="2.jpg" alt="区域/国家 DOS" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="12" fill="#f59e0b" font-size="8.5" font-family="sans-serif" font-weight="bold">区域/国家 DOS</text>
+          <!-- 表头 -->
+          <rect x="8" y="15" width="244" height="12" rx="2" fill="#1e2d3d"/>
+          <text x="11"  y="24" fill="#94a3b8" font-size="6.5" font-family="sans-serif">机型范围</text>
+          <text x="60"  y="24" fill="#94a3b8" font-size="6.5" font-family="sans-serif">7日均DOS</text>
+          <text x="104" y="24" fill="#94a3b8" font-size="6.5" font-family="sans-serif">7日均销售激活</text>
+          <text x="162" y="24" fill="#94a3b8" font-size="6.5" font-family="sans-serif">库存</text>
+          <text x="200" y="24" fill="#94a3b8" font-size="6.5" font-family="sans-serif">激活ASP</text>
+          <!-- 行1：全量机型 -->
+          <rect x="8" y="28" width="244" height="12" rx="1" fill="#0d1624"/>
+          <text x="11"  y="37" fill="#e2e8f0" font-size="7" font-family="sans-serif">全量机型</text>
+          <text x="63"  y="37" fill="#facc15" font-size="7" font-family="sans-serif">42 d</text>
+          <text x="108" y="37" fill="#22c55e" font-size="7" font-family="sans-serif">6,840</text>
+          <text x="164" y="37" fill="#94a3b8" font-size="7" font-family="sans-serif">287,400</text>
+          <text x="203" y="37" fill="#3b82f6" font-size="7" font-family="sans-serif">¥1,820</text>
+          <!-- 行2：活跃机型 -->
+          <rect x="8" y="41" width="244" height="12" rx="1" fill="#131c2b"/>
+          <text x="11"  y="50" fill="#e2e8f0" font-size="7" font-family="sans-serif">活跃机型</text>
+          <text x="63"  y="50" fill="#22c55e" font-size="7" font-family="sans-serif">28 d</text>
+          <text x="108" y="50" fill="#22c55e" font-size="7" font-family="sans-serif">5,910</text>
+          <text x="164" y="50" fill="#94a3b8" font-size="7" font-family="sans-serif">165,300</text>
+          <text x="203" y="50" fill="#3b82f6" font-size="7" font-family="sans-serif">¥2,140</text>
+          <!-- 分隔 -->
+          <line x1="8" y1="54" x2="252" y2="54" stroke="#1e2d3d" stroke-width="1"/>
+          <!-- 同比区块 标题 -->
+          <text x="10" y="63" fill="#64748b" font-size="7" font-family="sans-serif">激活同比（代理维度）</text>
+          <!-- 三种同比 KPI 小块 -->
+          <rect x="8"   y="66" width="74" height="28" rx="4" fill="#101828" stroke="#3b82f622" stroke-width="1"/>
+          <text x="45"  y="77" fill="#3b82f6" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">+14%</text>
+          <text x="45"  y="88" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">月别同比</text>
+          <rect x="88"  y="66" width="74" height="28" rx="4" fill="#101828" stroke="#22c55e22" stroke-width="1"/>
+          <text x="125" y="77" fill="#22c55e" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">+8%</text>
+          <text x="125" y="88" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">周别同比</text>
+          <rect x="168" y="66" width="84" height="28" rx="4" fill="#101828" stroke="#a855f722" stroke-width="1"/>
+          <text x="210" y="77" fill="#a855f7" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">+3.2%</text>
+          <text x="210" y="88" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">日别同比</text>
+          <!-- 代理维度条形 -->
+          <text x="10" y="104" fill="#64748b" font-size="7" font-family="sans-serif">代理 DOS 拆分</text>
+          <rect x="8"  y="107" width="110" height="8" rx="2" fill="#1e2d3d"/>
+          <rect x="8"  y="107" width="76"  height="8" rx="2" fill="#3b82f6"/>
+          <text x="122" y="114" fill="#3b82f6" font-size="6.5" font-family="sans-serif">代理A 38d</text>
+          <rect x="8"  y="118" width="110" height="8" rx="2" fill="#1e2d3d"/>
+          <rect x="8"  y="118" width="55"  height="8" rx="2" fill="#22c55e"/>
+          <text x="122" y="125" fill="#22c55e" font-size="6.5" font-family="sans-serif">代理B 27d</text>
+          <!-- 警戒线竖 -->
+          <line x1="59" y1="105" x2="59" y2="128" stroke="#facc15" stroke-width="1" stroke-dasharray="2 2"/>
+          <text x="49" y="132" fill="#facc15" font-size="6" font-family="sans-serif">30d</text>
+          <!-- 右侧ASP迷你趋势 -->
+          <text x="175" y="104" fill="#64748b" font-size="7" font-family="sans-serif">ASP趋势</text>
+          <polyline points="175,128 188,122 200,125 212,116 224,112 236,107 248,102"
+            fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+          <circle cx="248" cy="102" r="2" fill="#3b82f6"/>
+          <line x1="173" y1="130" x2="250" y2="130" stroke="#1e2d3d" stroke-width="1"/>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">区域/国家 DOS</div>
+          <div class="card-desc">推送全量/活跃机型的 7日均DOS、7日均销售激活、库存、激活ASP，含月/周/日别同比及代理维度拆分。</div>
+          <div class="tag-chips">
+            <span class="chip">全量机型</span><span class="chip">活跃机型</span>
+            <span class="chip">7日均DOS</span><span class="chip">7日均销售激活</span>
+            <span class="chip">库存</span><span class="chip">激活ASP</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">激活_月别同比</span><span class="chip">激活_周别同比</span><span class="chip">激活_日别同比</span>
+            <span class="chip">代理维度（同页）</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片3：区域经营达成进展 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="3.jpg" alt="区域经营达成进展" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="12" fill="#f59e0b" font-size="8.5" font-family="sans-serif" font-weight="bold">区域经营达成进展</text>
+          <!-- 季度标签 -->
+          <rect x="8" y="15" width="42" height="11" rx="3" fill="#f59e0b22" stroke="#f59e0b44" stroke-width="1"/>
+          <text x="13" y="23" fill="#f59e0b" font-size="7" font-family="sans-serif">Q3 2024</text>
+          <!-- 6 个 KPI 小卡 2行3列 -->
+          <!-- 行1 -->
+          <!-- 手机SI -->
+          <rect x="8"   y="29" width="76" height="32" rx="4" fill="#131c2b" stroke="#3b82f622" stroke-width="1"/>
+          <text x="46"  y="42" fill="#3b82f6" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">82%</text>
+          <text x="46"  y="55" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">手机 SI</text>
+          <!-- 手机ASP -->
+          <rect x="92"  y="29" width="76" height="32" rx="4" fill="#131c2b" stroke="#a855f722" stroke-width="1"/>
+          <text x="130" y="42" fill="#a855f7" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">¥1,920</text>
+          <text x="130" y="55" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">手机 ASP</text>
+          <!-- 手机激活 -->
+          <rect x="176" y="29" width="76" height="32" rx="4" fill="#131c2b" stroke="#22c55e22" stroke-width="1"/>
+          <text x="214" y="42" fill="#22c55e" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">76%</text>
+          <text x="214" y="55" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">手机激活</text>
+          <!-- 行2 -->
+          <!-- 平板SI -->
+          <rect x="8"   y="65" width="76" height="32" rx="4" fill="#131c2b" stroke="#f9731622" stroke-width="1"/>
+          <text x="46"  y="78" fill="#f97316" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">68%</text>
+          <text x="46"  y="91" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">平板 SI</text>
+          <!-- AIOT收入 -->
+          <rect x="92"  y="65" width="76" height="32" rx="4" fill="#131c2b" stroke="#38bdf822" stroke-width="1"/>
+          <text x="130" y="78" fill="#38bdf8" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">91%</text>
+          <text x="130" y="91" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">AIOT 收入</text>
+          <!-- 全品类收入 -->
+          <rect x="176" y="65" width="76" height="32" rx="4" fill="#131c2b" stroke="#facc1522" stroke-width="1"/>
+          <text x="214" y="78" fill="#facc15" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">85%</text>
+          <text x="214" y="91" fill="#64748b" font-size="6.5" font-family="sans-serif" text-anchor="middle">全品类收入</text>
+          <!-- 进度条汇总行 -->
+          <text x="10" y="108" fill="#64748b" font-size="7" font-family="sans-serif">季度综合达成</text>
+          <rect x="8"   y="111" width="244" height="8" rx="4" fill="#1e2d3d"/>
+          <rect x="8"   y="111" width="198" height="8" rx="4" fill="url(#barGrad)"/>
+          <defs>
+            <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="#3b82f6"/>
+              <stop offset="50%"  stop-color="#a855f7"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+          </defs>
+          <text x="214" y="118" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">81%</text>
+          <!-- 图例 -->
+          <rect x="8"   y="123" width="7" height="7" rx="1" fill="#22c55e"/>
+          <text x="18"  y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">达标</text>
+          <rect x="50"  y="123" width="7" height="7" rx="1" fill="#f97316"/>
+          <text x="60"  y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">低于目标</text>
+          <rect x="110" y="123" width="7" height="7" rx="1" fill="#facc15"/>
+          <text x="120" y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">待关注</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">区域经营达成进展</div>
+          <div class="card-desc">按季度推送多品类经营达成率，含手机 SI/ASP/激活、平板 SI、AIOT 收入及全品类收入。</div>
+          <div class="tag-chips">
+            <span class="chip">季度手机SI</span><span class="chip">手机ASP</span><span class="chip">手机激活</span>
+            <span class="chip">平板SI</span><span class="chip">AIOT收入</span><span class="chip">全品类收入</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片4：新品系列推送 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="4.jpg" alt="新品系列推送" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="12" fill="#f59e0b" font-size="8.5" font-family="sans-serif" font-weight="bold">新品系列推送</text>
+          <!-- NEW 标签 -->
+          <rect x="116" y="5" width="28" height="11" rx="3" fill="#f59e0b"/>
+          <text x="120" y="13.5" fill="#0a111e" font-size="7.5" font-family="sans-serif" font-weight="bold">NEW</text>
+          <!-- 手机卡1 -->
+          <rect x="8"  y="17" width="72" height="80" rx="6" fill="#131c2b" stroke="#a855f744" stroke-width="1"/>
+          <rect x="18" y="23" width="52" height="44" rx="4" fill="#1e2d3d"/>
+          <!-- 屏幕渐变示意 -->
+          <rect x="20" y="25" width="48" height="40" rx="3" fill="#0d1624"/>
+          <circle cx="44" cy="35" r="8" fill="#a855f722"/>
+          <circle cx="44" cy="35" r="4" fill="#a855f755"/>
+          <text x="44" y="75" fill="#e2e8f0" font-size="7.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">Pura 80</text>
+          <text x="44" y="84" fill="#a855f7" font-size="6.5" font-family="sans-serif" text-anchor="middle">旗舰新品</text>
+          <rect x="12" y="90" width="60" height="8" rx="3" fill="#1e2d3d"/>
+          <rect x="12" y="90" width="46" height="8" rx="3" fill="#a855f7"/>
+          <text x="26" y="97" fill="#e2e8f0" font-size="6" font-family="sans-serif">发布 75%</text>
+          <!-- 手机卡2 -->
+          <rect x="88"  y="17" width="72" height="80" rx="6" fill="#131c2b" stroke="#3b82f644" stroke-width="1"/>
+          <rect x="98"  y="23" width="52" height="44" rx="4" fill="#1e2d3d"/>
+          <rect x="100" y="25" width="48" height="40" rx="3" fill="#0d1624"/>
+          <circle cx="124" cy="35" r="8" fill="#3b82f722"/>
+          <circle cx="124" cy="35" r="4" fill="#3b82f755"/>
+          <text x="124" y="75" fill="#e2e8f0" font-size="7.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">Nova 13</text>
+          <text x="124" y="84" fill="#3b82f6" font-size="6.5" font-family="sans-serif" text-anchor="middle">次旗舰</text>
+          <rect x="92"  y="90" width="60" height="8" rx="3" fill="#1e2d3d"/>
+          <rect x="92"  y="90" width="38" height="8" rx="3" fill="#3b82f6"/>
+          <text x="106" y="97" fill="#e2e8f0" font-size="6" font-family="sans-serif">发布 62%</text>
+          <!-- 手机卡3 -->
+          <rect x="168" y="17" width="82" height="80" rx="6" fill="#131c2b" stroke="#22c55e44" stroke-width="1"/>
+          <rect x="178" y="23" width="52" height="44" rx="4" fill="#1e2d3d"/>
+          <rect x="180" y="25" width="48" height="40" rx="3" fill="#0d1624"/>
+          <circle cx="204" cy="35" r="8" fill="#22c55e22"/>
+          <circle cx="204" cy="35" r="4" fill="#22c55e55"/>
+          <text x="209" y="75" fill="#e2e8f0" font-size="7.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">Y Series X</text>
+          <text x="209" y="84" fill="#22c55e" font-size="6.5" font-family="sans-serif" text-anchor="middle">大众系列</text>
+          <rect x="172" y="90" width="70" height="8" rx="3" fill="#1e2d3d"/>
+          <rect x="172" y="90" width="56" height="8" rx="3" fill="#22c55e"/>
+          <text x="190" y="97" fill="#e2e8f0" font-size="6" font-family="sans-serif">发布 88%</text>
+          <!-- 底部：关键指标条 -->
+          <rect x="8" y="102" width="244" height="11" rx="3" fill="#101824"/>
+          <text x="12"  y="110" fill="#64748b" font-size="6.5" font-family="sans-serif">系列推送国家</text>
+          <rect x="78"  y="104" width="18" height="7" rx="2" fill="#a855f744"/>
+          <text x="80"  y="110" fill="#a855f7" font-size="6.5" font-family="sans-serif">RU</text>
+          <rect x="99"  y="104" width="18" height="7" rx="2" fill="#3b82f644"/>
+          <text x="101" y="110" fill="#3b82f6" font-size="6.5" font-family="sans-serif">KZ</text>
+          <rect x="120" y="104" width="20" height="7" rx="2" fill="#22c55e44"/>
+          <text x="122" y="110" fill="#22c55e" font-size="6.5" font-family="sans-serif">CA</text>
+          <!-- 时间轴 -->
+          <line x1="8" y1="120" x2="252" y2="120" stroke="#1e2d3d" stroke-width="1"/>
+          <circle cx="40"  cy="120" r="3" fill="#a855f7"/>
+          <text x="32"  y="130" fill="#64748b" font-size="6" font-family="sans-serif">10/14</text>
+          <circle cx="110" cy="120" r="3" fill="#3b82f6"/>
+          <text x="102" y="130" fill="#64748b" font-size="6" font-family="sans-serif">11/01</text>
+          <circle cx="195" cy="120" r="3" fill="#22c55e"/>
+          <text x="187" y="130" fill="#64748b" font-size="6" font-family="sans-serif">11/20</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">新品系列推送</div>
+          <div class="card-desc">推送最新上市及即将发布的机型系列，含发布进度、覆盖国家及上市时间轴。</div>
+          <div class="tag-chips">
+            <span class="chip">新品发布进度</span><span class="chip">覆盖国家</span>
+            <span class="chip">系列/机型</span><span class="chip">上市时间轴</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片5：区域/国家非手机激活/激活金额 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="补1.jpg" alt="区域/国家非手机激活" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">区域 / 国家非手机激活 · 激活金额</div>
+          <div class="card-desc">非手机及S品类各国激活量与激活金额，含月别/周别/日别同比，与代理维度在同一页。</div>
+          <div class="tag-chips">
+            <span class="chip">非手机</span><span class="chip">S品类</span>
+            <span class="chip">激活_月别同比</span><span class="chip">激活_周别同比</span><span class="chip">激活_日别同比</span>
+            <span class="chip">代理维度同页</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /推送类 cards -->
+
+    <!-- 筛选类 -->
+    <div class="section-title filter">筛选类</div>
+    <div class="cards">
+
+      <!-- 卡片5：DOS 监控 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="5.jpg" alt="DOS 监控" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="12" fill="#38bdf8" font-size="8.5" font-family="sans-serif" font-weight="bold">DOS 监控</text>
+          <!-- 筛选栏 行1 -->
+          <rect x="8"   y="15" width="46" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="12"  y="23" fill="#64748b" font-size="7" font-family="sans-serif">国家 ▾</text>
+          <rect x="58"  y="15" width="46" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="62"  y="23" fill="#64748b" font-size="7" font-family="sans-serif">客户 ▾</text>
+          <rect x="108" y="15" width="56" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="112" y="23" fill="#64748b" font-size="7" font-family="sans-serif">机型价位段 ▾</text>
+          <rect x="168" y="15" width="46" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="172" y="23" fill="#64748b" font-size="7" font-family="sans-serif">产品线 ▾</text>
+          <rect x="218" y="15" width="36" height="11" rx="3" fill="#22c55e22"/>
+          <text x="222" y="23" fill="#22c55e" font-size="7" font-family="sans-serif">活跃 ▾</text>
+          <!-- 维度切换 -->
+          <rect x="8"   y="29" width="32" height="10" rx="3" fill="#38bdf833"/>
+          <text x="11"  y="37" fill="#38bdf8" font-size="6.5" font-family="sans-serif">产品线</text>
+          <rect x="44"  y="29" width="28" height="10" rx="3" fill="#1e2d3d"/>
+          <text x="48"  y="37" fill="#64748b" font-size="6.5" font-family="sans-serif">机型</text>
+          <rect x="76"  y="29" width="28" height="10" rx="3" fill="#1e2d3d"/>
+          <text x="80"  y="37" fill="#64748b" font-size="6.5" font-family="sans-serif">内存</text>
+          <rect x="108" y="29" width="28" height="10" rx="3" fill="#1e2d3d"/>
+          <text x="112" y="37" fill="#64748b" font-size="6.5" font-family="sans-serif">颜色</text>
+          <!-- 表头 -->
+          <rect x="8" y="42" width="244" height="12" rx="2" fill="#1e2d3d"/>
+          <text x="11"  y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">机型</text>
+          <text x="52"  y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">总激活</text>
+          <text x="88"  y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">YTD销售激活</text>
+          <text x="138" y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">渠道库存</text>
+          <text x="176" y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">7日DOS</text>
+          <text x="211" y="51" fill="#94a3b8" font-size="6.5" font-family="sans-serif">周环比</text>
+          <!-- 数据行 -->
+          <g font-size="6.8" font-family="sans-serif">
+            <rect x="8" y="55" width="244" height="11" rx="1" fill="#0d1624"/>
+            <text x="11"  y="63" fill="#e2e8f0">Nova 12 Pro</text>
+            <text x="52"  y="63" fill="#22c55e">128,450</text>
+            <text x="90"  y="63" fill="#94a3b8">92,100</text>
+            <text x="142" y="63" fill="#94a3b8">34,200</text>
+            <text x="178" y="63" fill="#facc15">42d</text>
+            <text x="212" y="63" fill="#22c55e">+8.2%</text>
+
+            <rect x="8" y="67" width="244" height="11" rx="1" fill="#131c2b"/>
+            <text x="11"  y="75" fill="#e2e8f0">Pura 70</text>
+            <text x="52"  y="75" fill="#22c55e">89,300</text>
+            <text x="90"  y="75" fill="#94a3b8">76,500</text>
+            <text x="142" y="75" fill="#94a3b8">18,600</text>
+            <text x="178" y="75" fill="#f97316">58d⚠</text>
+            <text x="212" y="75" fill="#f97316">-3.1%</text>
+
+            <rect x="8" y="79" width="244" height="11" rx="1" fill="#0d1624"/>
+            <text x="11"  y="87" fill="#e2e8f0">Mate 60</text>
+            <text x="52"  y="87" fill="#22c55e">204,100</text>
+            <text x="90"  y="87" fill="#94a3b8">188,000</text>
+            <text x="142" y="87" fill="#94a3b8">42,500</text>
+            <text x="178" y="87" fill="#22c55e">28d</text>
+            <text x="212" y="87" fill="#22c55e">+5.6%</text>
+
+            <rect x="8" y="91" width="244" height="11" rx="1" fill="#131c2b"/>
+            <text x="11"  y="99" fill="#e2e8f0">Y Series</text>
+            <text x="52"  y="99" fill="#22c55e">310,200</text>
+            <text x="90"  y="99" fill="#94a3b8">298,400</text>
+            <text x="142" y="99" fill="#94a3b8">68,000</text>
+            <text x="178" y="99" fill="#22c55e">22d</text>
+            <text x="212" y="99" fill="#22c55e">+12%</text>
+          </g>
+          <!-- 近7日 / 近28日 迷你说明 -->
+          <rect x="8"   y="105" width="244" height="12" rx="2" fill="#101824"/>
+          <text x="11"  y="114" fill="#64748b" font-size="6.5" font-family="sans-serif">近7日激活</text>
+          <text x="56"  y="114" fill="#3b82f6"  font-size="6.5" font-family="sans-serif">33,840</text>
+          <text x="96"  y="114" fill="#64748b"  font-size="6.5" font-family="sans-serif">近28日激活</text>
+          <text x="145" y="114" fill="#3b82f6"  font-size="6.5" font-family="sans-serif">128,600</text>
+          <text x="188" y="114" fill="#64748b"  font-size="6.5" font-family="sans-serif">28日DOS</text>
+          <text x="224" y="114" fill="#facc15"  font-size="6.5" font-family="sans-serif">36d</text>
+          <!-- 总库存/本地仓 -->
+          <rect x="8" y="120" width="244" height="12" rx="2" fill="#0d1218"/>
+          <text x="11"  y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">总库存</text>
+          <text x="40"  y="129" fill="#94a3b8" font-size="6.5" font-family="sans-serif">287,400</text>
+          <text x="88"  y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">渠道库存</text>
+          <text x="124" y="129" fill="#94a3b8" font-size="6.5" font-family="sans-serif">165,300</text>
+          <text x="170" y="129" fill="#64748b" font-size="6.5" font-family="sans-serif">本地仓</text>
+          <text x="197" y="129" fill="#94a3b8" font-size="6.5" font-family="sans-serif">122,100</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-filter">FILTER</span>
+          <div class="card-name">DOS 监控</div>
+          <div class="card-desc">多维筛选库存天数监控，可按产品线/机型/内存/颜色切换呈现维度，包含完整库存与激活指标。</div>
+          <div class="tag-chips">
+            <span class="chip">筛选：国家</span><span class="chip">客户</span><span class="chip">机型价位段</span><span class="chip">产品线</span><span class="chip">活跃/EOL</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">维度：产品线</span><span class="chip">机型</span><span class="chip">内存</span><span class="chip">颜色</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">总激活</span><span class="chip">YTD妥投</span><span class="chip">YTD销售激活</span><span class="chip">总库存</span><span class="chip">渠道库存</span><span class="chip">本地仓库存</span><span class="chip">7日均激活</span><span class="chip">28日均激活</span><span class="chip">周环比</span><span class="chip">7日均DOS</span><span class="chip">28日均DOS</span><span class="chip">近7日激活</span><span class="chip">近28日激活</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/b6cd4eed-6ba1-4fbd-bc22-e5f612c93b19/9d6f2ca0632076477d81?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+            ↗ 打开 Power BI 报告
+          </a>
+        </div>
+      </div>
+
+      <!-- 卡片6：GTM Pilot 1114 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="6.jpg" alt="GTM Pilot 1114" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="14" fill="#38bdf8" font-size="9" font-family="sans-serif" font-weight="bold">GTM Pilot 1114</text>
+          <!-- 筛选行 -->
+          <rect x="10" y="19" width="42" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="13" y="27" fill="#64748b" font-size="7" font-family="sans-serif">时间 ▾</text>
+          <rect x="56" y="19" width="42" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="59" y="27" fill="#64748b" font-size="7" font-family="sans-serif">客户 ▾</text>
+          <rect x="102" y="19" width="42" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="105" y="27" fill="#64748b" font-size="7" font-family="sans-serif">机型 ▾</text>
+          <rect x="148" y="19" width="42" height="11" rx="3" fill="#1e2d3d"/>
+          <text x="151" y="27" fill="#64748b" font-size="7" font-family="sans-serif">颜色 ▾</text>
+          <rect x="194" y="19" width="55" height="11" rx="3" fill="#3b82f622"/>
+          <text x="197" y="27" fill="#3b82f6" font-size="7" font-family="sans-serif">哈萨克2C ▾</text>
+          <!-- 双机型对比柱 -->
+          <text x="10" y="44" fill="#64748b" font-size="8" font-family="sans-serif">机型对比</text>
+          <!-- 机型A -->
+          <rect x="10" y="48" width="100" height="9" rx="2" fill="#3b82f644"/>
+          <rect x="10" y="48" width="82"  height="9" rx="2" fill="#3b82f6"/>
+          <text x="95" y="56" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">妥投 82%</text>
+          <rect x="10" y="59" width="100" height="9" rx="2" fill="#22c55e44"/>
+          <rect x="10" y="59" width="68"  height="9" rx="2" fill="#22c55e"/>
+          <text x="95" y="67" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">激活 68%</text>
+          <!-- 机型B -->
+          <text x="130" y="44" fill="#64748b" font-size="8" font-family="sans-serif">对比机型</text>
+          <rect x="130" y="48" width="100" height="9" rx="2" fill="#a855f744"/>
+          <rect x="130" y="48" width="91"  height="9" rx="2" fill="#a855f7"/>
+          <text x="225" y="56" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">91%</text>
+          <rect x="130" y="59" width="100" height="9" rx="2" fill="#f9731644"/>
+          <rect x="130" y="59" width="74"  height="9" rx="2" fill="#f97316"/>
+          <text x="225" y="67" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">74%</text>
+          <!-- 流量瀑布 -->
+          <text x="10" y="84" fill="#64748b" font-size="8" font-family="sans-serif">流入/流出</text>
+          <rect x="10"  y="87" width="50" height="30" rx="3" fill="#22c55e88"/>
+          <text x="18"  y="99" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">流入</text>
+          <text x="14"  y="110" fill="#22c55e" font-size="8" font-family="sans-serif">+12,400</text>
+          <rect x="75"  y="97" width="50" height="20" rx="3" fill="#f9731688"/>
+          <text x="83"  y="109" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">流出</text>
+          <text x="78"  y="120" fill="#f97316" font-size="8" font-family="sans-serif">-8,200</text>
+          <rect x="140" y="92" width="50" height="25" rx="3" fill="#3b82f688"/>
+          <text x="148" y="104" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">库存</text>
+          <text x="142" y="120" fill="#3b82f6" font-size="8" font-family="sans-serif">34,600</text>
+          <!-- 导出按钮 -->
+          <rect x="200" y="108" width="48" height="14" rx="4" fill="#38bdf822" stroke="#38bdf8" stroke-width="1"/>
+          <text x="207" y="118" fill="#38bdf8" font-size="8" font-family="sans-serif">导出数据</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-filter">FILTER</span>
+          <div class="card-name">GTM Pilot 1114</div>
+          <div class="card-desc">GTM试点机型全链路跟踪，支持两机型对比、新老品交接分析及数据导出。</div>
+          <div class="tag-chips">
+            <span class="chip">筛选：时间</span><span class="chip">客户</span><span class="chip">国家</span><span class="chip">产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">哈萨克2C客户</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">妥投</span><span class="chip">销售激活</span><span class="chip">自然激活</span><span class="chip">库存</span><span class="chip">流入流出</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">两机型对比</span><span class="chip">新老品交接</span><span class="chip">数据导出</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/f490efde-1bbd-406d-a755-77e55321ea5a/ReportSection71c283b3e3e94280340e?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+            ↗ 打开 Power BI 报告
+          </a>
+        </div>
+      </div>
+
+      <!-- 卡片7：产品信息查询 -->
+      <div class="card">
+        <div class="card-img-wrap"><img src="7.jpg" alt="产品信息查询" loading="lazy"/></div>
+        <svg style="display:none" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="140" fill="#0a111e"/>
+          <text x="10" y="14" fill="#38bdf8" font-size="9" font-family="sans-serif" font-weight="bold">产品信息查询</text>
+          <!-- 搜索框 -->
+          <rect x="10" y="19" width="180" height="14" rx="5" fill="#1e2d3d" stroke="#334155" stroke-width="1"/>
+          <text x="16" y="29" fill="#475569" font-size="8" font-family="sans-serif">搜索 goods ID / 69码 / SKU / 机型名...</text>
+          <rect x="196" y="19" width="50" height="14" rx="5" fill="#38bdf833" stroke="#38bdf8" stroke-width="1"/>
+          <text x="204" y="29" fill="#38bdf8" font-size="8" font-family="sans-serif">🔍 查询</text>
+          <!-- 结果卡片 -->
+          <rect x="10" y="40" width="240" height="48" rx="6" fill="#131c2b" stroke="#1e2d3d" stroke-width="1"/>
+          <!-- 手机图示 -->
+          <rect x="16" y="46" width="22" height="36" rx="4" fill="#1e2d3d" stroke="#334155" stroke-width="1"/>
+          <rect x="19" y="50" width="16" height="24" rx="2" fill="#0f1520"/>
+          <circle cx="27" cy="79" r="2" fill="#334155"/>
+          <!-- 信息 -->
+          <text x="46" y="53" fill="#e2e8f0" font-size="8.5" font-family="sans-serif" font-weight="bold">Pura 70 Pro</text>
+          <text x="46" y="63" fill="#64748b" font-size="7.5" font-family="sans-serif">Goods ID: HW-P70P-BLK-256</text>
+          <text x="46" y="72" fill="#64748b" font-size="7.5" font-family="sans-serif">69码: 6942103105823</text>
+          <text x="46" y="81" fill="#64748b" font-size="7.5" font-family="sans-serif">SKU: CLT-AL10 | 12+256GB | 黑色</text>
+          <!-- 标签 -->
+          <rect x="150" y="44" width="40" height="10" rx="3" fill="#22c55e22"/>
+          <text x="156" y="52" fill="#22c55e" font-size="7" font-family="sans-serif">在售</text>
+          <rect x="194" y="44" width="50" height="10" rx="3" fill="#a855f722"/>
+          <text x="198" y="52" fill="#a855f7" font-size="7" font-family="sans-serif">Nova 系列</text>
+          <!-- short name 区 -->
+          <rect x="10" y="96" width="240" height="13" rx="3" fill="#1e2d3d"/>
+          <text x="14" y="105" fill="#38bdf8" font-size="7.5" font-family="sans-serif">Short Name:</text>
+          <text x="70" y="105" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">P70P</text>
+          <text x="105" y="105" fill="#38bdf8" font-size="7.5" font-family="sans-serif">配置:</text>
+          <text x="126" y="105" fill="#e2e8f0" font-size="7.5" font-family="sans-serif">12+256 / Kirin 9010</text>
+          <!-- 更多结果 -->
+          <rect x="10" y="115" width="240" height="13" rx="3" fill="#0d1624" stroke="#1e2d3d" stroke-width="1"/>
+          <text x="14" y="124" fill="#475569" font-size="7.5" font-family="sans-serif">还有 3 条相关结果 →</text>
+        </svg>
+        <div class="card-body">
+          <span class="card-tag tag-filter">FILTER</span>
+          <div class="card-name">产品信息查询</div>
+          <div class="card-desc">通过多种字段快速检索产品详情，支持交叉比对及 SKU 全属性展示。</div>
+          <div class="tag-chips">
+            <span class="chip">Goods ID</span><span class="chip">69码</span><span class="chip">SKU</span>
+            <span class="chip">配置</span><span class="chip">机型名</span><span class="chip">Short Name</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/2ad3d1b6-9afb-485e-b2bf-18ace5ab0a26/ReportSection?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+            ↗ 打开 Power BI 报告
+          </a>
+        </div>
+      </div>
+
+    </div><!-- /筛选类 cards -->
+  </div><!-- /panel-body -->
+</div><!-- /drill-panel -->
+
+<!-- ===== 俄罗斯专属面板 ===== -->
+<div id="ru-panel" style="display:none; margin:0 24px 40px; animation:panelIn .3s ease;">
+  <div class="panel-header">
+    <span class="ph-icon">🇷🇺</span>
+    <span class="ph-title">俄罗斯</span>
+    <span class="ph-sub">Russia</span>
+    <span class="ph-close" onclick="closeRuPanel()">✕</span>
+  </div>
+  <div class="panel-body">
+    <!-- Tab 切换 -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="ru-tab-agent" onclick="switchRuTab('agent')"
+        style="padding:7px 20px;border-radius:8px;border:1px solid #f59e0b;background:#f59e0b22;color:#f59e0b;font-size:12px;font-weight:700;cursor:pointer;">
+        🏭 代理商
+      </button>
+      <button id="ru-tab-retail" onclick="switchRuTab('retail')"
+        style="padding:7px 20px;border-radius:8px;border:1px solid #334155;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;">
+        🏪 零售商
+      </button>
+    </div>
+
+    <!-- ===== 代理商 Tab ===== -->
+    <div id="ru-content-agent">
+      <div class="section-title push">推送类 · 代理商</div>
+      <div class="cards" style="margin-bottom:28px;">
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="1.1.jpg" alt="代理激活与DOS" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-push">PUSH</span>
+            <div class="card-name">代理激活 · DOS</div>
+            <div class="card-desc">按机型推送各代理商激活情况与 DOS 现状，快速识别异常代理与滞销机型。</div>
+            <div class="tag-chips">
+              <span class="chip">by 机型</span>
+              <span class="chip">代理激活情况</span>
+              <span class="chip">DOS 情况</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="补1.jpg" alt="非手机代理激活与DOS" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-push">PUSH</span>
+            <div class="card-name">非手机代理激活 · DOS</div>
+            <div class="card-desc">按机型推送非手机各代理商激活情况与 DOS 现状，快速识别异常代理与滞销机型。</div>
+            <div class="tag-chips">
+              <span class="chip">非手机</span>
+              <span class="chip">by 机型</span>
+              <span class="chip">代理激活情况</span>
+              <span class="chip">DOS 情况</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-title filter">筛选类 · 代理商</div>
+      <div class="cards">
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="1.2.jpg" alt="代理商PSI" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-filter">FILTER</span>
+            <div class="card-name">代理商 PSI</div>
+            <div class="card-desc">手机：代理商库存、ST情况、IR客户分类；非手机：代理商库存及ST情况。</div>
+            <div class="tag-chips">
+              <span class="chip">手机：代理商库存</span><span class="chip">代理商ST</span><span class="chip">IR客户分类</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">非手机：代理商库存</span><span class="chip">代理商ST</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">筛选：产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">Goods ID</span><span class="chip">时间</span><span class="chip">KA</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/c76fa493-826e-4366-8b30-5b91a2727a29/b7d3d54d7cf2e4c92fd1?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank" style="margin-top:0;">
+                ↗ 手机
+              </a>
+              <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/2ec178dc-8574-47d1-9669-8ba88096ac3c/ReportSectionb597eeb3e8cb3f16e98d?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank" style="margin-top:0;">
+                ↗ 非手机
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="1.3.jpg" alt="Gnet数据拆分" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-filter">FILTER</span>
+            <div class="card-name">Gnet 数据拆分</div>
+            <div class="card-desc">细分 DNS、Msota、Yanfan、Gnet others 等客户的激活、妥投、库存及 DOS 指标。</div>
+            <div class="tag-chips">
+              <span class="chip">DNS</span><span class="chip">Msota</span><span class="chip">Yanfan</span><span class="chip">Gnet Others</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">激活</span><span class="chip">妥投</span><span class="chip">渠道库存</span><span class="chip">7日均激活</span><span class="chip">28日均激活</span><span class="chip">7日均DOS</span><span class="chip">28日均DOS</span>
+            </div>
+            <a class="card-link-btn" href="https://app.powerbi.com/groups/b5a213ad-25f7-47f6-ac7e-d0217e3388bd/reports/d4e250f7-1b9a-4b3b-adb3-023052d4eb64/0447ebfec08836269b40?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+              ↗ 打开 Power BI 报告
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /代理商 Tab -->
+
+    <!-- ===== 零售商 Tab ===== -->
+    <div id="ru-content-retail" style="display:none;">
+      <div class="section-title push">推送类 · 零售商</div>
+      <div class="cards" style="margin-bottom:28px;">
+
+        <div class="card">
+          <div class="card-img-wrap" style="display:flex;align-items:center;justify-content:center;background:#101824;">
+            <span style="color:#475569;font-size:12px;">🚧 预计加入</span>
+          </div>
+          <div class="card-body">
+            <span class="card-tag tag-push">PUSH</span>
+            <div class="card-name">零售商每日激活与库存</div>
+            <div class="card-desc">（即将上线）推送零售商每日激活量与库存变动，快速感知动销异常。</div>
+            <div class="tag-chips">
+              <span class="chip">每日激活</span><span class="chip">库存情况</span><span class="chip">即将上线</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="2.1.jpg" alt="官旗数据监控" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-push">PUSH</span>
+            <div class="card-name">官旗数据监控</div>
+            <div class="card-desc">全品类 SO、GMV、库存、DOS 及月/周/日同比，支持各品类下钻明细。</div>
+            <div class="tag-chips">
+              <span class="chip">全品类SO</span><span class="chip">GMV</span><span class="chip">库存</span><span class="chip">DOS</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">月同比</span><span class="chip">周同比</span><span class="chip">日同比</span><span class="chip">品类下钻</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-title filter">筛选类 · 零售商</div>
+      <div class="cards">
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="2.2.jpg" alt="零售商PSI" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-filter">FILTER</span>
+            <div class="card-name">零售商 PSI</div>
+            <div class="card-desc">手机/非手机均含零售商库存、SO、WOS，支持多维筛选。</div>
+            <div class="tag-chips">
+              <span class="chip">零售商库存</span><span class="chip">零售商SO</span><span class="chip">WOS</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">筛选：产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">Goods ID</span><span class="chip">时间</span><span class="chip">KA</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/25c856a3-ca5a-4038-8c46-f2ea69c36ae8/ReportSectionfd07255999faf7bea766?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank" style="margin-top:0;">
+                ↗ 手机
+              </a>
+              <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/2ec178dc-8574-47d1-9669-8ba88096ac3c/ReportSectionbd0f8f01eb30858d4a88?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank" style="margin-top:0;">
+                ↗ 非手机
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-img-wrap"><img src="2.3.jpg" alt="零售商激活" loading="lazy"/></div>
+          <div class="card-body">
+            <span class="card-tag tag-filter">FILTER</span>
+            <div class="card-name">零售商激活</div>
+            <div class="card-desc">零售商 SI、销售激活、库存、DOS、合规激活，支持产品线/机型/配置/颜色/Goods ID 筛选。</div>
+            <div class="tag-chips">
+              <span class="chip">零售商SI</span><span class="chip">销售激活</span><span class="chip">库存</span><span class="chip">DOS</span><span class="chip">合规激活</span>
+            </div>
+            <div class="tag-chips" style="margin-top:4px">
+              <span class="chip">筛选：产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">Goods ID</span>
+            </div>
+            <a class="card-link-btn" href="https://app.powerbi.com/groups/me/reports/8575a024-4fa5-4be8-a99c-28875b1ad657/bab26cfbe90707033d11?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+              ↗ 打开 Power BI 报告
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /零售商 Tab -->
+
+  </div><!-- /panel-body -->
+</div><!-- /ru-panel -->
+
+<!-- ===== 哈萨克专属面板 ===== -->
+<div id="kz-panel" style="display:none; margin:0 24px 40px; animation:panelIn .3s ease;">
+  <div class="panel-header">
+    <span class="ph-icon">🇰🇿</span>
+    <span class="ph-title">哈萨克</span>
+    <span class="ph-sub">Kazakhstan</span>
+    <span class="ph-close" onclick="closeKzPanel()">✕</span>
+  </div>
+  <div class="panel-body">
+
+    <!-- 推送类 -->
+    <div class="section-title push">推送类 · 哈萨克</div>
+    <div class="cards" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="card-img-wrap"><img src="哈萨克.jpg" alt="代理激活与DOS" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">代理激活 · DOS</div>
+          <div class="card-desc">按机型推送哈萨克各代理商激活情况与 DOS 现状，快速识别异常代理与滞销机型。</div>
+          <div class="tag-chips">
+            <span class="chip">by 机型</span>
+            <span class="chip">代理激活情况</span>
+            <span class="chip">DOS 情况</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选类 -->
+    <div class="section-title filter">筛选类 · 哈萨克</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-img-wrap"><img src="哈萨克1.jpg" alt="零售商PSI 手机" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-filter">FILTER</span>
+          <div class="card-name">零售商 PSI · 手机</div>
+          <div class="card-desc">零售商SI、库存、SO、WOS，支持产品线/机型/配置/颜色/Goods ID/时间/KA 多维筛选。</div>
+          <div class="tag-chips">
+            <span class="chip">零售商SI</span><span class="chip">零售商库存</span><span class="chip">零售商SO</span><span class="chip">WOS</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">筛选：产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">Goods ID</span><span class="chip">时间</span><span class="chip">KA</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/c0705b6c-9da1-4f95-ba5a-4852007ad52d/ReportSectionfd07255999faf7bea766?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+            ↗ 打开 Power BI 报告
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-wrap"><img src="哈萨克2.jpg" alt="零售商PSI 非手机" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-filter">FILTER</span>
+          <div class="card-name">零售商 PSI · 非手机</div>
+          <div class="card-desc">非手机品类零售商SI、库存、SO、WOS，支持产品线/机型/配置/颜色/Goods ID/时间/KA 多维筛选。</div>
+          <div class="tag-chips">
+            <span class="chip">零售商SI</span><span class="chip">零售商库存</span><span class="chip">零售商SO</span><span class="chip">WOS</span>
+          </div>
+          <div class="tag-chips" style="margin-top:4px">
+            <span class="chip">筛选：产品线</span><span class="chip">机型</span><span class="chip">配置</span><span class="chip">颜色</span><span class="chip">Goods ID</span><span class="chip">时间</span><span class="chip">KA</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/f7183927-8fe2-4d3e-9faf-8da17e08a8ef/reports/b72b7e83-a6fe-4ceb-a4d5-585e49ce4b17/ae34f7ff506163160a50?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank">
+            ↗ 打开 Power BI 报告
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-body -->
+</div><!-- /kz-panel -->
+
+<!-- ===== 中亚/白高专属面板 ===== -->
+<div id="ca-panel" style="display:none; margin:0 24px 40px; animation:panelIn .3s ease;">
+  <div class="panel-header">
+    <span class="ph-icon">🌐</span>
+    <span class="ph-title">中亚 / 白高</span>
+    <span class="ph-sub"></span>
+    <span class="ph-close" onclick="closeCaPanel()">✕</span>
+  </div>
+  <div class="panel-body">
+
+    <!-- 推送类 -->
+    <div class="section-title push">推送类 · 中亚 / 白高</div>
+    <div class="cards" style="margin-bottom:28px;">
+
+      <div class="card">
+        <div class="card-img-wrap"><img src="中亚1.jpg" alt="中亚 代理激活与DOS" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">代理激活 · DOS（中亚）</div>
+          <div class="card-desc">按机型推送中亚各代理商激活情况与 DOS 现状，快速识别异常代理与滞销机型。</div>
+          <div class="tag-chips">
+            <span class="chip">by 机型</span>
+            <span class="chip">代理激活情况</span>
+            <span class="chip">DOS 情况</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-img-wrap"><img src="白高1.jpg" alt="白高 代理激活与DOS" loading="lazy"/></div>
+        <div class="card-body">
+          <span class="card-tag tag-push">PUSH</span>
+          <div class="card-name">代理激活 · DOS（白高）</div>
+          <div class="card-desc">按机型推送白高各代理商激活情况与 DOS 现状，快速识别异常代理与滞销机型。</div>
+          <div class="tag-chips">
+            <span class="chip">by 机型</span>
+            <span class="chip">代理激活情况</span>
+            <span class="chip">DOS 情况</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /推送类 cards -->
+
+  </div><!-- /panel-body -->
+</div><!-- /ca-panel -->
+
+<!-- ===== 总部资源专属面板 ===== -->
+<div id="hq-panel" style="display:none; margin:0 24px 40px; animation:panelIn .3s ease;">
+  <div class="panel-header">
+    <span class="ph-icon">🏢</span>
+    <span class="ph-title">总部资源</span>
+    <span class="ph-sub">HQ Resources</span>
+    <span class="ph-close" onclick="closeHqPanel()">✕</span>
+  </div>
+  <div class="panel-body">
+
+    <div class="section-title filter">资源入口</div>
+    <div class="cards">
+
+      <!-- International BI -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-filter">BI</span>
+          <div class="card-name">International BI</div>
+          <div class="card-desc">包含激活、零售商 PSI、产品库存等数据。</div>
+          <div class="tag-chips">
+            <span class="chip">激活</span>
+            <span class="chip">零售商PSI</span>
+            <span class="chip">产品库存</span>
+          </div>
+          <a class="card-link-btn" href="https://iwork.mioffice.cn/idi/Main/Shujing/PSI?id=channelpsi" target="_blank">
+            ↗ 打开 International BI
+          </a>
+        </div>
+      </div>
+
+      <!-- 国际BI小程序 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-filter">小程序</span>
+          <div class="card-name">国际 BI</div>
+          <div class="card-desc">包含目标管理、新品实时数据 & 全球排名。</div>
+          <div class="tag-chips">
+            <span class="chip">目标管理</span>
+            <span class="chip">新品实时数据</span>
+            <span class="chip">全球排名</span>
+          </div>
+          <div class="card-desc" style="margin-top:8px; color:#64748b; font-size:11px;">小程序入口，请在移动端打开</div>
+        </div>
+      </div>
+
+      <!-- 手机/非手机合规&流入流出 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-filter">合规</span>
+          <div class="card-name">手机 / 非手机合规 &amp; 流入流出</div>
+          <div class="card-desc">合规监控及渠道流入流出数据报表。</div>
+          <div class="tag-chips">
+            <span class="chip">手机</span>
+            <span class="chip">非手机</span>
+            <span class="chip">合规</span>
+            <span class="chip">流入</span>
+            <span class="chip">流出</span>
+          </div>
+          <a class="card-link-btn" href="https://app.powerbi.com/groups/me/apps/5a090a23-1732-457d-ae5a-6190a995eeeb/reports/254b89ef-1996-4a9a-ba5a-ee0255ec269b/ReportSection833d4c25cb550d9ea287?experience=power-bi" target="_blank">
+            ↗ 打开报告
+          </a>
+          <a class="card-link-btn" href="https://mi.feishu.cn/wiki/Vrfjwi2usiZPe5keIWgcIAE3ndd" target="_blank" style="margin-left:8px;">
+            ↗ 渠道相关权限申请操作指导
+          </a>
+        </div>
+      </div>
+
+      <!-- 非手机销售激活 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-filter">激活</span>
+          <div class="card-name">非手机销售激活</div>
+          <div class="card-desc">非手机品类销售激活数据报表。</div>
+          <div class="tag-chips">
+            <span class="chip">非手机</span>
+            <span class="chip">销售激活</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <a class="card-link-btn" href="https://app.powerbi.com/groups/me/reports/f4775efe-ec4c-4360-bcdc-9b6c1e1306e6/ReportSection477ff8c045e477217a4d?ctid=8b69898f-0512-4d15-9f34-be92f222d528&experience=power-bi" target="_blank" style="margin-top:0;">
+              ↗ 打开报告
+            </a>
+            <a class="card-link-btn" href="https://mi.feishu.cn/share/base/form/shrcnolRpbtoLgjZQKLmruUj5Wd" target="_blank" style="margin-top:0;">
+              ↗ 申请权限
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards -->
+  </div><!-- /panel-body -->
+</div><!-- /hq-panel -->
+
+<!-- ===== AI赋能专属面板 ===== -->
+<div id="ai-panel" style="display:none; margin:0 24px 40px; animation:panelIn .3s ease;">
+  <div class="panel-header">
+    <span class="ph-icon">🤖</span>
+    <span class="ph-title">AI 赋能</span>
+    <span class="ph-sub">AI Empowerment</span>
+    <span class="ph-close" onclick="closeAiPanel()">✕</span>
+  </div>
+  <div class="panel-body">
+
+    <div class="section-title push">入口 &amp; 培训</div>
+    <div class="cards" style="margin-bottom:28px;">
+
+      <!-- 1. 个人虾申请 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">申请</span>
+          <div class="card-name">个人虾申请</div>
+          <div class="card-desc">填写岗位与邮箱，提交个人虾账号申请。</div>
+          <a class="card-link-btn" href="shrimp-apply.html" target="_blank">↗ 立即申请</a>
+        </div>
+      </div>
+
+      <!-- 2. AI认知与实践基本培训 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">培训</span>
+          <div class="card-name">AI 认知与实践基本培训</div>
+          <div class="card-desc">新人培训手册，覆盖 AI 认知基础与实践操作。</div>
+          <a class="card-link-btn" href="https://mi.feishu.cn/wiki/Aq1EwzTVjikEcbkMOd6cSUtAnZc" target="_blank">↗ 查看培训手册</a>
+        </div>
+      </div>
+
+      <!-- 4. 使用问题提出 -->
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">反馈</span>
+          <div class="card-name">使用时的问题提出</div>
+          <div class="card-desc">遇到问题？提交使用反馈，帮助我们持续改进。</div>
+          <a class="card-link-btn" href="shrimp-issue.html" target="_blank">↗ 提交问题</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. 现有能力 -->
+    <div class="section-title filter">独联体销管岗位 · 虾现有能力</div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">📊</span>
+          <div class="card-name">数据分析</div>
+          <div class="card-desc" style="line-height:1.9;">
+            <b style="color:#94a3b8">激活分析</b>：日报 / 周报 / 月报，区域 / 国家 / 产品线多维度分析<br>
+            <b style="color:#94a3b8">销售库存查询</b>：渠道库存、DOS、合规率、E2E 全链路追踪<br>
+            <b style="color:#94a3b8">数据可视化</b>：生成飞书互动卡片、趋势图、排名表
+          </div>
+          <div class="tag-chips" style="margin-top:8px;">
+            <span class="chip">日报/周报/月报</span><span class="chip">DOS</span><span class="chip">合规率</span><span class="chip">E2E</span><span class="chip">飞书卡片</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">🤝</span>
+          <div class="card-name">渠道管理</div>
+          <div class="card-desc" style="line-height:1.9;">
+            <b style="color:#94a3b8">客户查询</b>：交易客户信息、CRM / SAP 编码查询<br>
+            <b style="color:#94a3b8">白名单 / 黑名单分析</b>：合规客户筛选与风险排查<br>
+            <b style="color:#94a3b8">准入协议查询</b>：NDA、廉洁协议签署状态
+          </div>
+          <div class="tag-chips" style="margin-top:8px;">
+            <span class="chip">CRM/SAP</span><span class="chip">白名单</span><span class="chip">黑名单</span><span class="chip">NDA</span><span class="chip">廉洁协议</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">📝</span>
+          <div class="card-name">合同管理</div>
+          <div class="card-desc" style="line-height:1.9;">
+            <b style="color:#94a3b8">合同状态查询</b>：经办人、评审进度、处理节点<br>
+            <b style="color:#94a3b8">合同知识答疑</b>：政策、流程、规则、SOP 问答<br>
+            <b style="color:#94a3b8">非实质性修改判定</b>：简化评审流程判断
+          </div>
+          <div class="tag-chips" style="margin-top:8px;">
+            <span class="chip">合同状态</span><span class="chip">SOP问答</span><span class="chip">非实质性修改</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <span class="card-tag tag-push">🔧</span>
+          <div class="card-name">系统支持</div>
+          <div class="card-desc" style="line-height:1.9;">
+            <b style="color:#94a3b8">健康检查</b>：OpenClaw 服务状态巡检<br>
+            <b style="color:#94a3b8">问题诊断</b>：消息不回复、响应慢等问题排查<br>
+            <b style="color:#94a3b8">定时任务</b>：提醒、周期性任务自动执行
+          </div>
+          <div class="tag-chips" style="margin-top:8px;">
+            <span class="chip">OpenClaw</span><span class="chip">健康检查</span><span class="chip">问题诊断</span><span class="chip">定时任务</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /panel-body -->
+</div><!-- /ai-panel -->
+
+<!-- 图片预览浮层 -->
+<div id="img-preview-overlay" onclick="closePreview()">
+  <span id="img-preview-close" onclick="closePreview()">✕</span>
+  <img id="img-preview-img" src="" alt=""/>
+</div>
+
+<script>
+// 图片悬停/点击预览（可重复调用，已绑定的不重复绑）
+function bindPreview(){
+  document.querySelectorAll('.card-img-wrap:not([data-preview-bound])').forEach(wrap => {
+    const img = wrap.querySelector('img');
+    if (!img) return;
+    wrap.dataset.previewBound = '1';
+    let timer = null;
+    wrap.addEventListener('mouseenter', () => {
+      timer = setTimeout(() => showPreview(img.src, img.alt), 500);
+    });
+    wrap.addEventListener('mouseleave', () => { clearTimeout(timer); });
+    wrap.addEventListener('click', e => {
+      e.stopPropagation();
+      clearTimeout(timer);
+      showPreview(img.src, img.alt);
+    });
+  });
+}
+bindPreview();
+function showPreview(src, alt) {
+  const overlay = document.getElementById('img-preview-overlay');
+  const previewImg = document.getElementById('img-preview-img');
+  previewImg.src = src;
+  previewImg.alt = alt || '';
+  overlay.classList.add('show');
+}
+function closePreview() {
+  document.getElementById('img-preview-overlay').classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+
+// ============================================================
+//  状态
+// ============================================================
+let drilledId = null;
+
+// ============================================================
+//  面板
+// ============================================================
+// 俄罗斯专属面板 Tab 切换
+function switchRuTab(tab){
+  const isAgent = tab === 'agent';
+  document.getElementById('ru-content-agent').style.display = isAgent ? '' : 'none';
+  document.getElementById('ru-content-retail').style.display = isAgent ? 'none' : '';
+  const btnAgent  = document.getElementById('ru-tab-agent');
+  const btnRetail = document.getElementById('ru-tab-retail');
+  if(isAgent){
+    btnAgent.style.background='#f59e0b22'; btnAgent.style.color='#f59e0b'; btnAgent.style.borderColor='#f59e0b';
+    btnRetail.style.background='transparent'; btnRetail.style.color='#64748b'; btnRetail.style.borderColor='#334155';
+  } else {
+    btnRetail.style.background='#38bdf822'; btnRetail.style.color='#38bdf8'; btnRetail.style.borderColor='#38bdf8';
+    btnAgent.style.background='transparent'; btnAgent.style.color='#64748b'; btnAgent.style.borderColor='#334155';
+  }
+  // 绑定新出现图片的悬停预览
+  bindPreview();
+}
+function closeAllSpecialPanels(){
+  document.getElementById('ru-panel').style.display='none';
+  document.getElementById('kz-panel').style.display='none';
+  document.getElementById('ca-panel').style.display='none';
+  document.getElementById('hq-panel').style.display='none';
+  document.getElementById('ai-panel').style.display='none';
+}
+function toggleAiPanel(){
+  const p = document.getElementById('ai-panel');
+  const isOpen = p.style.display !== 'none';
+  if(isOpen){
+    closeAiPanel();
+  } else {
+    closePanel(); closeAllSpecialPanels(); clearAllActive();
+    drilledId = 'ai';
+    document.getElementById('ai-res-card').classList.add('active');
+    p.style.display = 'block';
+    setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  }
+}
+function closeAiPanel(){
+  document.getElementById('ai-panel').style.display='none';
+  document.getElementById('ai-res-card').classList.remove('active');
+  drilledId = null;
+}
+function toggleHqPanel(){
+  const p = document.getElementById('hq-panel');
+  const isOpen = p.style.display !== 'none';
+  if(isOpen){
+    closeHqPanel();
+  } else {
+    closePanel(); closeAllSpecialPanels(); clearAllActive();
+    drilledId = 'hq';
+    document.getElementById('hq-res-card').classList.add('active');
+    p.style.display = 'block';
+    bindPreview();
+    setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  }
+}
+function closeHqPanel(){
+  document.getElementById('hq-panel').style.display='none';
+  document.getElementById('hq-res-card').classList.remove('active');
+  drilledId = null;
+}
+function openRuPanel(){
+  closePanel(); closeAllSpecialPanels();
+  const p = document.getElementById('ru-panel');
+  p.style.display = 'block';
+  switchRuTab('agent');
+  setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function closeRuPanel(){
+  document.getElementById('ru-panel').style.display='none';
+  drilledId=null;
+  clearAllActive();
+}
+function openKzPanel(){
+  closePanel(); closeAllSpecialPanels();
+  const p = document.getElementById('kz-panel');
+  p.style.display = 'block';
+  bindPreview();
+  setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function closeKzPanel(){
+  document.getElementById('kz-panel').style.display='none';
+  drilledId=null;
+  clearAllActive();
+}
+function openCaPanel(){
+  closePanel(); closeAllSpecialPanels();
+  const p = document.getElementById('ca-panel');
+  p.style.display = 'block';
+  bindPreview();
+  setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function closeCaPanel(){
+  document.getElementById('ca-panel').style.display='none';
+  drilledId=null;
+  clearAllActive();
+}
+
+function openPanel(nd){
+  closeAllSpecialPanels();
+  drilledId=nd.id;
+  document.getElementById('ph-icon').textContent=nd.icon;
+  document.getElementById('ph-title').textContent=nd.label;
+  document.getElementById('ph-sub').textContent=nd.sub||'';
+  const panel=document.getElementById('drill-panel');
+  panel.classList.add('visible');
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function closePanel(){
+  document.getElementById('drill-panel').classList.remove('visible');
+  drilledId=null;
+  clearAllActive();
+}
+
+// ============================================================
+//  新交互逻辑
+// ============================================================
+
+// 节点 active 样式
+function setActive(cardEl, active){
+  if(!cardEl) return;
+  cardEl.classList.toggle('active', active);
+}
+
+function clearAllActive(){
+  document.querySelectorAll('.target-card.active, .source-card.active')
+    .forEach(el => el.classList.remove('active'));
+}
+
+// 点击独联体区域源节点
+function toggleCis(){
+  const panel = document.getElementById('drill-panel');
+  const isOpen = panel.classList.contains('visible');
+  if(isOpen && drilledId === 'cis'){
+    closePanel(); closeAllSpecialPanels();
+    clearAllActive();
+    drilledId = null;
+  } else {
+    closePanel(); closeAllSpecialPanels(); clearAllActive();
+    drilledId = 'cis';
+    setActive(document.getElementById('src-cis'), true);
+    // 独联体用通用面板，填入内容
+    document.getElementById('ph-icon').textContent  = '🌍';
+    document.getElementById('ph-title').textContent = '独联体区域';
+    document.getElementById('ph-sub').textContent   = 'CIS Region';
+    panel.classList.add('visible');
+    setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  }
+}
+
+// 点击国家节点
+function openCountry(id){
+  if(drilledId === id){
+    // 再次点击关闭
+    if(id==='ru') closeRuPanel();
+    else if(id==='kz') closeKzPanel();
+    else if(id==='ca') closeCaPanel();
+    else closePanel();
+    clearAllActive();
+    drilledId = null;
+    return;
+  }
+  closePanel(); closeAllSpecialPanels(); clearAllActive();
+  drilledId = id;
+  setActive(document.getElementById('t-'+id), true);
+  if(id==='ru')      openRuPanel();
+  else if(id==='kz') openKzPanel();
+  else if(id==='ca') openCaPanel();
+}
+
+
+
+// SVG 连线
+function buildPaths(){
+  const svg    = document.getElementById('connSvg');
+  if(!svg) return;
+  const source = document.getElementById('src-cis');
+  const svgRect = svg.getBoundingClientRect();
+  const srcRect = source.getBoundingClientRect();
+  const sx = srcRect.right - svgRect.left;
+  const sy = srcRect.top + srcRect.height / 2 - svgRect.top;
+
+  const targets  = [
+    {id:'t-ru', color:'#00c8ff', op:0.55},
+    {id:'t-kz', color:'#00c8ff', op:0.45},
+    {id:'t-ca', color:'#00e5a0', op:0.45},
+  ];
+
+  svg.innerHTML = `<defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
+
+  targets.forEach(({id, color, op}, i)=>{
+    const t = document.getElementById(id);
+    if(!t) return;
+    const tr = t.getBoundingClientRect();
+    const tx = tr.left - svgRect.left;
+    const ty = tr.top + tr.height / 2 - svgRect.top;
+    const cp1x = sx + (tx-sx)*0.45;
+    const cp2x = sx + (tx-sx)*0.55;
+    const d = `M ${sx} ${sy} C ${cp1x} ${sy}, ${cp2x} ${ty}, ${tx} ${ty}`;
+
+    // 发光底层
+    const glow = document.createElementNS('http://www.w3.org/2000/svg','path');
+    glow.setAttribute('d',d); glow.setAttribute('stroke',color);
+    glow.setAttribute('stroke-width','3.5'); glow.setAttribute('stroke-opacity','0.18');
+    glow.setAttribute('fill','none'); glow.setAttribute('filter','url(#glow)');
+    svg.appendChild(glow);
+
+    // 主线
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',d); path.setAttribute('stroke',color);
+    path.setAttribute('stroke-width','1.5'); path.setAttribute('stroke-opacity',String(op));
+    path.setAttribute('fill','none'); path.setAttribute('stroke-dasharray','6 3');
+    const animDur = 2.5 + i * 0.6;
+    path.innerHTML=`<animate attributeName="stroke-dashoffset" from="500" to="0" dur="${animDur}s" repeatCount="indefinite"/>`;
+    svg.appendChild(path);
+
+    // 终点圆
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx',String(tx)); dot.setAttribute('cy',String(ty));
+    dot.setAttribute('r','4'); dot.setAttribute('fill',color);
+    dot.setAttribute('opacity','0.7'); dot.setAttribute('filter','url(#glow)');
+    svg.appendChild(dot);
+
+    // 起点圆（只画一次）
+    if(i===0){
+      const sdot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      sdot.setAttribute('cx',String(sx)); sdot.setAttribute('cy',String(sy));
+      sdot.setAttribute('r','4'); sdot.setAttribute('fill','#00c8ff');
+      sdot.setAttribute('opacity','0.8'); sdot.setAttribute('filter','url(#glow)');
+      svg.appendChild(sdot);
+    }
+  });
+}
+
+window.addEventListener('load', buildPaths);
+window.addEventListener('resize', buildPaths);
+</script>
+</body>
+</html>
