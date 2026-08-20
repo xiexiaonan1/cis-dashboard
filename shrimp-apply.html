@@ -96,38 +96,45 @@
       <p>填写以下信息，提交后将为你开通独联体销管虾助手账号。</p>
     </div>
 
-    <div class="q-block">
-      <div class="q-label"><span class="q-num">1</span>岗位</div>
-      <input type="text" id="f-role" placeholder="例：区国总、销售、GTM、零售…"/>
-      <div class="err-tip" id="err-role">请填写你的岗位</div>
-    </div>
+    <form name="shrimp-apply" method="POST" data-netlify="true" action="/shrimp-apply.html?sent=1" onsubmit="return validateApply()">
+      <input type="hidden" name="form-name" value="shrimp-apply"/>
 
-    <div class="q-block">
-      <div class="q-label"><span class="q-num">2</span>邮箱</div>
-      <input type="email" id="f-email" placeholder="请输入公司邮箱"/>
-      <div class="err-tip" id="err-email">请填写有效的邮箱地址</div>
-    </div>
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">1</span>岗位</div>
+        <input type="text" id="f-role" name="岗位" placeholder="例：区国总、销售、GTM、零售…"/>
+        <div class="err-tip" id="err-role">请填写你的岗位</div>
+      </div>
 
-    <button class="submit-btn" onclick="submitApply()">提交申请</button>
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">2</span>邮箱</div>
+        <input type="email" id="f-email" name="邮箱" placeholder="请输入公司邮箱"/>
+        <div class="err-tip" id="err-email">请填写有效的邮箱地址</div>
+      </div>
+
+      <button type="submit" class="submit-btn">提交申请</button>
+    </form>
   </div>
 
 </div>
 <script>
+  if (new URLSearchParams(location.search).get('sent') === '1') {
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  }
+
   ['f-role','f-email'].forEach(id=>{
     document.getElementById(id).addEventListener('input',()=>{
       document.getElementById('err-'+id.replace('f-','')).classList.remove('show');
     });
   });
-  function submitApply(){
+
+  function validateApply(){
     let valid = true;
     const role  = document.getElementById('f-role').value.trim();
     const email = document.getElementById('f-email').value.trim();
     if(!role)  { document.getElementById('err-role').classList.add('show');  valid=false; }
     if(!email || !email.includes('@')) { document.getElementById('err-email').classList.add('show'); valid=false; }
-    if(!valid) return;
-    console.log('虾申请：', { 岗位: role, 邮箱: email, 时间: new Date().toLocaleString('zh-CN') });
-    document.getElementById('form-wrap').style.display='none';
-    document.getElementById('success-msg').style.display='block';
+    return valid;
   }
 </script>
 </body>

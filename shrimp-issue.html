@@ -96,38 +96,48 @@
       <p>遇到虾使用中的问题？请填写以下信息，帮助我们快速定位和改进。</p>
     </div>
 
-    <!-- Q1 功能模块 -->
-    <div class="q-block">
-      <div class="q-label"><span class="q-num">1</span>问题出现在哪个功能？</div>
-      <input type="text" id="q1" placeholder="例：激活分析、库存查询、合同查询…"/>
-      <div class="err-tip" id="err-q1">请填写功能模块</div>
-    </div>
+    <form name="shrimp-issue" method="POST" data-netlify="true" action="/shrimp-issue.html?sent=1" onsubmit="return validateIssue()">
+      <input type="hidden" name="form-name" value="shrimp-issue"/>
 
-    <!-- Q2 问题描述 -->
-    <div class="q-block">
-      <div class="q-label"><span class="q-num">2</span>问题具体描述</div>
-      <textarea id="q2" placeholder="请描述你遇到的问题，包括：做了什么操作、出现了什么现象、期望的结果是什么…"></textarea>
-      <div class="err-tip" id="err-q2">请填写具体描述（至少10个字）</div>
-    </div>
+      <!-- Q1 功能模块 -->
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">1</span>问题出现在哪个功能？</div>
+        <input type="text" id="q1" name="功能模块" placeholder="例：激活分析、库存查询、合同查询…"/>
+        <div class="err-tip" id="err-q1">请填写功能模块</div>
+      </div>
 
-    <!-- Q3 联系方式 -->
-    <div class="q-block">
-      <div class="q-label"><span class="q-num">3</span>联系方式（邮箱或飞书）</div>
-      <input type="text" id="q3" placeholder="方便我们联系你跟进问题"/>
-      <div class="err-tip" id="err-q3">请填写联系方式</div>
-    </div>
+      <!-- Q2 问题描述 -->
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">2</span>问题具体描述</div>
+        <textarea id="q2" name="问题描述" placeholder="请描述你遇到的问题，包括：做了什么操作、出现了什么现象、期望的结果是什么…"></textarea>
+        <div class="err-tip" id="err-q2">请填写具体描述（至少10个字）</div>
+      </div>
 
-    <button class="submit-btn" onclick="submitIssue()">提交反馈</button>
+      <!-- Q3 联系方式 -->
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">3</span>联系方式（邮箱或飞书）</div>
+        <input type="text" id="q3" name="联系方式" placeholder="方便我们联系你跟进问题"/>
+        <div class="err-tip" id="err-q3">请填写联系方式</div>
+      </div>
+
+      <button type="submit" class="submit-btn">提交反馈</button>
+    </form>
   </div>
 
 </div>
 <script>
+  if (new URLSearchParams(location.search).get('sent') === '1') {
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  }
+
   ['q1','q2','q3'].forEach(id=>{
     document.getElementById(id).addEventListener('input',()=>{
       document.getElementById('err-'+id).classList.remove('show');
     });
   });
-  function submitIssue(){
+
+  function validateIssue(){
     let valid = true;
     const q1 = document.getElementById('q1').value.trim();
     const q2 = document.getElementById('q2').value.trim();
@@ -135,10 +145,7 @@
     if(!q1) { document.getElementById('err-q1').classList.add('show'); valid=false; }
     if(q2.length < 10) { document.getElementById('err-q2').classList.add('show'); valid=false; }
     if(!q3) { document.getElementById('err-q3').classList.add('show'); valid=false; }
-    if(!valid) return;
-    console.log('虾问题反馈：', { 功能模块: q1, 问题描述: q2, 联系方式: q3, 时间: new Date().toLocaleString('zh-CN') });
-    document.getElementById('form-wrap').style.display='none';
-    document.getElementById('success-msg').style.display='block';
+    return valid;
   }
 </script>
 </body>
